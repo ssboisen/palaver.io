@@ -1,93 +1,28 @@
 !!!
-html
+html(ng-app)
   head
     title= title
     link(rel='stylesheet', href='/bootstrap/css/bootstrap.css')
     link(rel='stylesheet', href='/css/site.css')
+    script(src='http://ajax.googleapis.com/ajax/libs/angularjs/1.0.3/angular.min.js')
+    script(src='js/controllers.js')
     style
       body { padding-top: 60px }
 
     body
       div.container-fluid
-        div.row-fluid
+        div.row-fluid(ng-controller="RoomController")
           div.span10.messages
             ul
-              li hello
-              li hello
-              li hello
-              li hello
-              li hello
-              li hello
-              li hello
-              li hello
-              li hello
-              li hello
-              li hello
-              li hello
-              li hello
-              li hello
-              li hello
-              li hello
-              li hello
-              li hello
-              li hello
-              li hello
-              li hello
-              li hello
-              li hello
-              li hello
-              li hello
-              li hello
-              li hello
-              li hello
-              li hello
-              li hello
-              li hello
-              li hello
-              li hello
-              li hello
-              li hello
-              li hello
-              li hello
-              li hello
-              li hello
-              
-          div.span2.users
+              li(ng-repeat="message in messages", style="position: relative") 
+                div.left(style="float: left; width: 170px") {{message.user}}
+                div.middle {{message.content}}
+                div.right(style="position: absolute; right: 0px;top: 0px") {{ message.date }}
+           div.span2.users
             ul
-              li user
-              li user
-              li user
-              li user
-              li user
-              li user
-              li user
-              li user
-              li user
-              li user
-              li user
-              li user
-              li user
-              li user
-              li user
-              li user
-              li user
-              li user
-              li user
-              li user
-              li user
-              li user
-              li user
-              li user
-              li user
-              li user
-              li user
-              li user
-              li user
-              li user
-              li user
-              li user
-
-        div.row-fluid(style="padding-top: 40px")
+              li(ng-repeat="user in users")
+                {{user.username}}
+              div.row-fluid(style="padding-top: 40px")
           div.span6
             input(style="width: 800px")
           div.span2
