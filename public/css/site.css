@@ -1,0 +1,27 @@
+.messages {
+	height: 600px;
+	overflow: auto;
+}
+
+.messages ul {
+	list-style: none;
+}
+
+.messages ul li {
+	border-width: 0px;
+	border-bottom-width: 1px;
+	border-style: solid;
+}
+
+.users {
+	height: 600px;
+	overflow: auto;
+}
+
+.users ul {
+	list-style: none;
+}
+
+.users ul li {
+	margin-bottom: 5px;
+}
