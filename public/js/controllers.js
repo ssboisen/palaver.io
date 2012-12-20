@@ -76,3 +76,14 @@ function RoomController($scope){
 		username: "Simon Skov Boisen"
 	}];
 }
+
+function MessageController($scope) {
+
+	$scope.message = "";
+
+	$scope.sendmsg = function() {
+		console.log('send message with content: ' + $scope.message);
+		$scope.message = "";
+	};
+
+}

@@ -1,31 +1,33 @@
 !!!
-html(ng-app)
+html(ng-app="palaver")
   head
     title= title
     link(rel='stylesheet', href='/bootstrap/css/bootstrap.css')
     link(rel='stylesheet', href='/css/site.css')
+    link(rel='stylesheet', href='/angular-ui/angular-ui.min.css')
     script(src='http://ajax.googleapis.com/ajax/libs/angularjs/1.0.3/angular.min.js')
+    script(src='angular-ui/angular-ui.min.js')
     script(src='js/controllers.js')
-    style
-      body { padding-top: 60px }
+    script(src='js/modules.js')
 
     body
       div.container-fluid
         div.row-fluid(ng-controller="RoomController")
           div.span10.messages
             ul
-              li(ng-repeat="message in messages", style="position: relative") 
-                div.left(style="float: left; width: 170px;") {{message.user}}
-                div.middle(style="word-wrap: break-word;margin-left: 175px; margin-right: 95px") {{message.content}}
-                div.right(style="position: absolute; padding-right: 12px; right: 0px;top: 0px") {{ message.date | date:'HH:mm:ss' }}
+              li(ng-repeat="message in messages") 
+                div.left {{message.user}}
+                div.middle {{message.content}}
+                div.right {{ message.date | date:'HH:mm:ss' }}
            div.span2.users
             ul
               li(ng-repeat="user in users")
                 {{user.username}}
-              div.row-fluid(style="padding-top: 40px")
+       div.row-fluid(style="padding-top: 40px", ng-controller="MessageController")
           div.span6
-            input(style="width: 800px")
+            input(style="width: 800px; margin-left: 20px", ng-model="message", ui-keyup="{'enter':'sendmsg()'}")
           div.span2
-            h2 send
+            h2 
+              a(href="", ng-click="sendmsg()") send
 
    script(src='/bootstrap/js/bootstrap.js')

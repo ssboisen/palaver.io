@@ -1,3 +1,6 @@
+body {
+	padding-top: 60px;
+}
 .messages {
 	height: 600px;
 	overflow: auto;
@@ -14,8 +17,26 @@
 	border-width: 0px;
 	border-bottom-width: 1px;
 	border-style: solid;
+	position: relative;
 }
 
+.messages ul li .left {
+	float: left;
+	width: 170px;
+}
+
+.messages ul li .middle {
+	word-wrap: break-word;
+	margin-left: 175px;
+	margin-right: 95px;
+}
+
+.messages ul li .right {
+	position: absolute;
+	padding-right: 12px;
+	right: 0px;
+	top: 0px;
+}
 .users {
 	height: 600px;
 	overflow: auto;
