@@ -15,9 +15,9 @@ html(ng-app)
           div.span10.messages
             ul
               li(ng-repeat="message in messages", style="position: relative") 
-                div.left(style="float: left; width: 170px") {{message.user}}
-                div.middle {{message.content}}
-                div.right(style="position: absolute; right: 0px;top: 0px") {{ message.date }}
+                div.left(style="float: left; width: 170px;") {{message.user}}
+                div.middle(style="word-wrap: break-word;margin-left: 175px; margin-right: 95px") {{message.content}}
+                div.right(style="position: absolute; padding-right: 12px; right: 0px;top: 0px") {{ message.date | date:'HH:mm:ss' }}
            div.span2.users
             ul
               li(ng-repeat="user in users")
