@@ -7,9 +7,12 @@ html(ng-app="palaver")
     link(rel='stylesheet', href='angular-ui/angular-ui.min.css')
     script(src='http://ajax.googleapis.com/ajax/libs/angularjs/1.0.3/angular.min.js')
     script(src='angular-ui/angular-ui.min.js')
+    script(src='socket.io/socket.io.js')
+    script(src='http://underscorejs.org/underscore-min.js')
     script(src='js/controllers.js')
     script(src='js/modules.js')
-
+    script(src='js/services.js')
+    script(src='bootstrap/js/bootstrap.js')
     body
       div.container-fluid
         div.row-fluid(ng-controller="RoomController")
@@ -29,5 +32,3 @@ html(ng-app="palaver")
           div.span2
             h2 
               a(href="", ng-click="sendmsg()") send
-
-   script(src='/bootstrap/js/bootstrap.js')

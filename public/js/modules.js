@@ -1,1 +1,1 @@
-angular.module('palaver', ['ui']);
+angular.module('palaver', ['ui', 'services']);

@@ -1,9 +1,11 @@
-var express = require('express');
-var routes = require('./routes');
-var http = require('http');
+var express = require('express'),
+ routes = require('./routes'),
+ http = require('http'),
+ app = express(),
+ server = http.createServer(app),
+ io = require('socket.io').listen(server),
+ sanitize = require('validator').sanitize;
 
-var app = module.exports = express();
-var server = http.createServer(app);
 // Configuration
 app.configure(function(){
   app.set('views', __dirname + '/views');
@@ -23,6 +25,16 @@ app.configure('production', function(){
 });
 
 app.get('/', routes.index);
+
+io.sockets.on('connection', function (socket) {
+	socket.on('new-message', function (data) {
+		io.sockets.emit('new-message', { 
+				date: new Date(),
+				message: sanitize(data.message).xss(),
+				user: 'unknown'
+		});
+	});
+});
 
 server.listen(process.env.PORT || 3000)
 
