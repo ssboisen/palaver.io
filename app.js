@@ -3,8 +3,8 @@ routes = require('./routes'),
 http = require('http'),
 connect = require('express/node_modules/connect'),
 app = express(),
-sessionSecret = "some secret",
-sessionKey = "express.sid",
+sessionSecret = "palaver is the best",
+sessionKey = "palaver.sid",
 cookieParser = express.cookieParser(sessionSecret),
 sessionStore = new connect.middleware.session.MemoryStore(),
 server = http.createServer(app),
@@ -50,12 +50,10 @@ app.get('/login', routes.login );
 app.post('/login', passport.authenticate('local', { successRedirect: '/', failureRedirect: '/login' }));
 
 passport.serializeUser(function(user, done) {
-  console.log("Serializing user: %j", user)
   done(null, user.id);
 });
 
 passport.deserializeUser(function(id, done) {
-    console.log("Deserializing user with id: %j", id)
     if(id === 1) { done(null, {
         id: 1,
         username: "ssb",
