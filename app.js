@@ -91,13 +91,20 @@ io.configure(function (){
   }));
 });
 
+var messages = [];
 io.on('connection', function (socket) {
+    messages.forEach(function(m) {
+       socket.emit("new-message", m);
+    });
     socket.on('new-message', function (data) {
-        io.sockets.emit('new-message', { 
+        var message = {
             date: new Date(),
             message: sanitize(data.message).xss(),
             user: socket.handshake.user.username
-        });
+        };
+        messages.push(message);
+
+        io.sockets.emit('new-message', message);
     });
 });
 
