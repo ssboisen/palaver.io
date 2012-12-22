@@ -3,5 +3,5 @@ exports.index = function(req, res) {
 };
 
 exports.login = function(req, res) {
-	res.render('login', { title: "palaver > login" });
+	res.render('login', { title: "palaver > login", message: req.flash('error') });
 };

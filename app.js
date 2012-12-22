@@ -47,7 +47,7 @@ app.get('/', ensureAuthenticated, routes.index);
 
 app.get('/login', routes.login );
 
-app.post('/login', passport.authenticate('local', { successRedirect: '/', failureRedirect: '/login' }));
+app.post('/login', passport.authenticate('local', { successRedirect: '/', failureRedirect: '/login', failureFlash: true  }));
 
 passport.serializeUser(function(user, done) {
   done(null, user.id);
@@ -74,6 +74,10 @@ passport.use(new LocalStrategy(function(username, password, done){
         else if(username === "mhs" && password === "password") {
             done(null, { id: 2, username: "mhs", password: "password" });
         }
+        else {
+            done(null, false, { message: 'Invalid username or password' });
+        }
+
     });
 }));
 

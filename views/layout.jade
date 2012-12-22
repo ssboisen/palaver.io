@@ -15,20 +15,4 @@ html(ng-app="palaver")
     script(src='bootstrap/js/bootstrap.js')
     body
       div.container-fluid
-        div.row-fluid(ng-controller="RoomController")
-          div.span10.messages
-            ul
-              li(ng-repeat="message in messages") 
-                div.left {{message.user}}
-                div.middle {{message.content}}
-                div.right {{ message.date | date:'HH:mm:ss' }}
-           div.span2.users
-            ul
-              li(ng-repeat="user in users")
-                {{user.username}}
-       div.row-fluid(style="padding-top: 40px", ng-controller="MessageController")
-          div.span6
-            input(style="width: 800px; margin-left: 20px", ng-model="message", ui-keyup="{'enter':'sendmsg()'}")
-          div.span2
-            h2 
-              a(href="", ng-click="sendmsg()") send
+          block content
