@@ -97,8 +97,12 @@ io.configure(function (){
 });
 
 var messageRouter = MessageRouter(io);
-var messages = [];
+var rooms = [];
 io.on('connection', function (socket) {
+    var currentUser = {
+        username: socket.handshake.user.username
+    };
+
     socket.on('message', function (messageData) {
         if(messageData.content.charAt(0) === '/') //command
         {
@@ -109,40 +113,44 @@ io.on('connection', function (socket) {
 
             if(command === 'join')
             {
-                socket.join(args);
-                var messages_for_room = _.filter(messages,function(m) {
-                    return m.room_name === args;
-                });
-                
-                var users_in_room = _.chain(messages_for_room)
-                                        .map(function(message) { return message.user })
-                                        .uniq()
-                                        .map(function(user) {
-                        return {
-                            username: user
-                        }
-                    }).value();
+                var room_name = args;
 
-                var currentUser = {
-                    username: socket.handshake.user.username
-                };
-                var joined_room_message = {
-                    name: args,
-                    users:_.union(users_in_room, [ currentUser ]),
-                    messages: messages_for_room
-                };
-
-                socket.emit('joined-room', joined_room_message);
-                socket.broadcast.in(args).emit('user-joined-room', {
-                    user: currentUser,
-                    room_name: args
+                var room = _.find(rooms, function(r) {
+                    return r.name === room_name;
                 });
+
+                if(!room) {
+                    room = {
+                        name: room_name,
+                        users: [ currentUser ],
+                        messages: []
+                    };
+
+                    rooms.push(room);
+                }
+                else {
+                    if(!_.any(room.users, function(u) { return u.username === currentUser.username;})){
+                        room.users.push(currentUser);
+                        socket.broadcast.in(room.name).emit('user-joined-room', {
+                            user: currentUser,
+                            room_name: room.name
+                        });
+                    }
+                }
+
+                socket.join(room_name);
+                socket.emit('joined-room', room);
             }
         }
         else
         {
-            var message = messageRouter.routeMessage(messageData, socket)
-            messages.push(message);
+            var message = messageRouter.routeMessage(messageData, socket);
+
+            var room = _.find(rooms, function(room) {
+                return room.name === message.room_name;
+            });
+
+            room.messages.push(message);
         }
 
     });
@@ -162,6 +170,7 @@ function MessageRouter(io)
                 user: socket.handshake.user.username,
                 room_name: messageData.room_name
             };
+
             io.sockets.in(message.room_name).emit('chat-message',  message);
 
             return message;

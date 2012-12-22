@@ -15,7 +15,7 @@ block content
                             div.right {{ message.date | date:'HH:mm:ss' }}
                 div.span2.users
                     ul
-                        li(ng-repeat="user in selectedRoom.users | orderBy:username")
+                        li(ng-repeat="user in selectedRoom.users | orderBy:'username'")
                             {{user.username}}
         div.row-fluid(style="margin-top: 40px", ng-controller="MessageController")
             div.span8
