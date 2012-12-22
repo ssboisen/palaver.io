@@ -103,6 +103,15 @@ io.on('connection', function (socket) {
         username: socket.handshake.user.username
     };
 
+    var rooms_already_in = _.filter(rooms, function(r){
+        return _.any(r.users, function(u) {return u.username === currentUser.username;});
+    });
+
+    _.forEach(rooms_already_in, function(r) {
+        socket.join(r.name);
+        socket.emit('joined-room', r);
+    });
+
     socket.on('message', function (messageData) {
         if(messageData.content.charAt(0) === '/') //command
         {
@@ -122,21 +131,22 @@ io.on('connection', function (socket) {
                 if(!room) {
                     room = {
                         name: room_name,
-                        users: [ currentUser ],
+                        users: [ ],
                         messages: []
                     };
 
                     rooms.push(room);
                 }
-                else {
-                    if(!_.any(room.users, function(u) { return u.username === currentUser.username;})){
-                        room.users.push(currentUser);
-                        socket.broadcast.in(room.name).emit('user-joined-room', {
-                            user: currentUser,
-                            room_name: room.name
-                        });
-                    }
+                else if(_.any(room.users, function(u) { return u.username === currentUser.username;})){
+                    return;
                 }
+
+                room.users.push(currentUser);
+
+                socket.broadcast.in(room.name).emit('user-joined-room', {
+                    user: currentUser,
+                    room_name: room.name
+                });
 
                 socket.join(room_name);
                 socket.emit('joined-room', room);
