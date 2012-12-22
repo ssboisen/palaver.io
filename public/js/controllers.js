@@ -1,28 +1,28 @@
 function RoomController($scope, socket, pubsub){
 
-    $scope.rooms = [{ name: "Room 1", messages: [] }, { name: "Room 2", messages: [] }];
+    $scope.rooms = [{ name: "Room 1", messages: [], users: [] }, { name: "Room 2", messages: [], users: [] }];
     $scope.selectedRoom = null;
 
     $scope.setActiveRoom = function(room) {
       $scope.selectedRoom = room;
       pubsub.publish('selectedRoomChanged', $scope.selectedRoom);
     };
-
-	$scope.users = [];
 	
 	socket.on('new-message', function(data) {
 
-		if(!_.any($scope.users, function(u) { return u.username === data.user; })){
-			$scope.users.push({
-				username: data.user
-			});
-		}
+
 
         var room = _.find($scope.rooms, function(r) {
             return r.name === data.room;
         });
 
         if(room){
+            if(!_.any(room.users, function(u) { return u.username === data.user; })){
+                room.users.push({
+                    username: data.user
+                });
+            }
+
             room.messages.push({
                     user: data.user,
                     content: data.message,
