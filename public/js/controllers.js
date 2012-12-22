@@ -1,12 +1,11 @@
 function RoomController($scope, socket, pubsub){
 
     $scope.rooms = [{ name: "Room 1", messages: [] }];
-    $scope.selectedRoom = $scope.rooms[0];
+    $scope.selectedRoom = null;
 
     $scope.setActiveRoom = function(room) {
       $scope.selectedRoom = room;
       pubsub.publish('selectedRoomChanged', $scope.selectedRoom);
-
     };
 
 	$scope.users = [];
