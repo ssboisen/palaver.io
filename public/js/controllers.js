@@ -35,13 +35,13 @@ function RoomController($scope, socket, pubsub){
 function MessageController($scope, socket, pubsub) {
 
 	$scope.message = "";
-    var selectedRoom = null;
+    $scope.selectedRoom = null;
     pubsub.subscribe('selectedRoomChanged', function(room) {
-       selectedRoom = room;
+        $scope.selectedRoom = room;
     });
 
 	$scope.sendmsg = function() {
-		if($scope.message !== ""){
+		if($scope.message !== "" && selectedRoom){
 			socket.emit('new-message', {
 				message: $scope.message,
                 room: selectedRoom.name
