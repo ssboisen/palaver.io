@@ -1,6 +1,6 @@
 function RoomController($scope, socket, pubsub){
 
-    $scope.rooms = [{ name: "Room 1", messages: [] }];
+    $scope.rooms = [{ name: "Room 1", messages: [] }, { name: "Room 2", messages: [] }];
     $scope.selectedRoom = null;
 
     $scope.setActiveRoom = function(room) {
