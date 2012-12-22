@@ -41,10 +41,10 @@ function MessageController($scope, socket, pubsub) {
     });
 
 	$scope.sendmsg = function() {
-		if($scope.message !== "" && selectedRoom){
+		if($scope.message !== "" && $scope.selectedRoom){
 			socket.emit('new-message', {
 				message: $scope.message,
-                room: selectedRoom.name
+                room: $scope.selectedRoom.name
 			});
 
 			$scope.message = "";
