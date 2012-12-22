@@ -1,6 +1,6 @@
 function RoomController($scope, socket, pubsub){
 
-    $scope.rooms = [{ name: "Room 1", messages: [], users: [] }, { name: "Room 2", messages: [], users: [] }];
+    $scope.rooms = [];
     $scope.selectedRoom = null;
 
     $scope.setActiveRoom = function(room) {
@@ -8,28 +8,39 @@ function RoomController($scope, socket, pubsub){
       pubsub.publish('selectedRoomChanged', $scope.selectedRoom);
     };
 	
-	socket.on('new-message', function(data) {
+	socket.on('chat-message', function(message) {
 
-
-
+        console.log("Received message %j", message);
         var room = _.find($scope.rooms, function(r) {
-            return r.name === data.room;
+            return r.name === message.room_name;
         });
 
         if(room){
-            if(!_.any(room.users, function(u) { return u.username === data.user; })){
-                room.users.push({
-                    username: data.user
-                });
-            }
-
             room.messages.push({
-                    user: data.user,
-                    content: data.message,
-                    date: data.date
+                    user: message.user,
+                    content: message.content,
+                    date: message.date
                 });
         }
+        else {
+            console.error("Received chat-message for room which I had not joined: " + message.room_name);
+        }
+
 	});
+
+    socket.on('joined-room', function(room){
+        console.log("Joining room: %j", room);
+        $scope.rooms.push(room);
+        $scope.setActiveRoom(room);
+    });
+
+    socket.on('user-joined-room', function(message) {
+        var room = _.find($scope.rooms, function(r) {
+            return r.name === message.room_name;
+        });
+
+        room.users.push(message.user);
+    });
 }
 
 function MessageController($scope, socket, pubsub) {
@@ -41,11 +52,14 @@ function MessageController($scope, socket, pubsub) {
     });
 
 	$scope.sendmsg = function() {
-		if($scope.message !== "" && $scope.selectedRoom){
-			socket.emit('new-message', {
-				message: $scope.message,
-                room: $scope.selectedRoom.name
-			});
+		if($scope.message){
+            var message = {
+                content: $scope.message
+            }
+            if($scope.selectedRoom) {
+                message.room_name = $scope.selectedRoom.name;
+            }
+			socket.emit('message', message);
 
 			$scope.message = "";
 		}

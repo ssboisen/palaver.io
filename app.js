@@ -1,46 +1,47 @@
 var express = require('express'),
-routes = require('./routes'),
-http = require('http'),
-connect = require('express/node_modules/connect'),
-app = express(),
-sessionSecret = "palaver is the best",
-sessionKey = "palaver.sid",
-cookieParser = express.cookieParser(sessionSecret),
-sessionStore = new connect.middleware.session.MemoryStore(),
-server = http.createServer(app),
-sanitize = require('validator').sanitize,
-io = require('socket.io').listen(server),
-passport = require('passport'),
-passportSocketIo = require('passport.socketio'),
-flash = require('connect-flash'),
-LocalStrategy = require('passport-local').Strategy;
+    routes = require('./routes'),
+    http = require('http'),
+    connect = require('express/node_modules/connect'),
+    app = express(),
+    sessionSecret = "palaver is the best",
+    sessionKey = "palaver.sid",
+    cookieParser = express.cookieParser(sessionSecret),
+    sessionStore = new connect.middleware.session.MemoryStore(),
+    server = http.createServer(app),
+    sanitize = require('validator').sanitize,
+    io = require('socket.io').listen(server),
+    passport = require('passport'),
+    passportSocketIo = require('passport.socketio'),
+    flash = require('connect-flash'),
+    LocalStrategy = require('passport-local').Strategy,
+    _ = require('underscore');
 
 // Configuration
 app.configure(function(){
-  app.set('views', __dirname + '/views');
-  app.set('view engine', 'jade');
-  app.use(express.logger());
-  app.use(cookieParser);
-  app.use(express.bodyParser());
-  app.use(express.methodOverride());
-  app.use(express.session({ store: sessionStore, key: sessionKey }));
-  app.use(flash());
-  app.use(passport.initialize());
-  app.use(passport.session());
-  app.use(app.router);
-  app.use(express.static(__dirname + '/public'));
+    app.set('views', __dirname + '/views');
+    app.set('view engine', 'jade');
+    app.use(express.logger());
+    app.use(cookieParser);
+    app.use(express.bodyParser());
+    app.use(express.methodOverride());
+    app.use(express.session({ store: sessionStore, key: sessionKey }));
+    app.use(flash());
+    app.use(passport.initialize());
+    app.use(passport.session());
+    app.use(app.router);
+    app.use(express.static(__dirname + '/public'));
 });
 
 app.configure('development', function(){
-  app.use(express.errorHandler({ dumpExceptions: true, showStack: true }));
+    app.use(express.errorHandler({ dumpExceptions: true, showStack: true }));
 });
 
 app.configure('production', function(){
-  app.use(express.errorHandler());
+    app.use(express.errorHandler());
 });
 
 function ensureAuthenticated(req, res, next) {
-    if (req.isAuthenticated()) { return next(); } 
+    if (req.isAuthenticated()) { return next(); }
     res.redirect('/login')
 }
 app.get('/', ensureAuthenticated, routes.index);
@@ -50,7 +51,7 @@ app.get('/login', routes.login );
 app.post('/login', passport.authenticate('local', { successRedirect: '/', failureRedirect: '/login', failureFlash: true  }));
 
 passport.serializeUser(function(user, done) {
-  done(null, user.id);
+    done(null, user.id);
 });
 
 passport.deserializeUser(function(id, done) {
@@ -59,11 +60,11 @@ passport.deserializeUser(function(id, done) {
         username: "ssb",
         password: "password"
     }); }
-        else if(id === 2) { done(null, {
-            id: 2,
-            username: "mhs",
-            password: "password"
-        })}
+    else if(id === 2) { done(null, {
+        id: 2,
+        username: "mhs",
+        password: "password"
+    })}
 });
 
 passport.use(new LocalStrategy(function(username, password, done){
@@ -82,37 +83,88 @@ passport.use(new LocalStrategy(function(username, password, done){
 }));
 
 io.configure(function (){
-  io.set("authorization", passportSocketIo.authorize({
+    io.set("authorization", passportSocketIo.authorize({
         sessionKey:    sessionKey,      //the cookie where express (or connect) stores its session id.
         sessionStore:  sessionStore,     //the session store that express uses
         sessionSecret: sessionSecret, //the session secret to parse the cookie
-    fail: function(data, accept) {     // *optional* callbacks on success or fail
-      accept(null, false);             // second param takes boolean on whether or not to allow handshake
-    },
-    success: function(data, accept) {
-      accept(null, true);
-    }
-  }));
+        fail: function(data, accept) {     // *optional* callbacks on success or fail
+            accept(null, false);             // second param takes boolean on whether or not to allow handshake
+        },
+        success: function(data, accept) {
+            accept(null, true);
+        }
+    }));
 });
 
+var messageRouter = MessageRouter(io);
 var messages = [];
 io.on('connection', function (socket) {
-    messages.forEach(function(m) {
-       socket.emit("new-message", m);
-    });
-    socket.on('new-message', function (data) {
-        var message = {
-            date: new Date(),
-            message: sanitize(data.message).xss(),
-            user: socket.handshake.user.username,
-            room: data.room
-        };
-        messages.push(message);
+    socket.on('message', function (messageData) {
+        if(messageData.content.charAt(0) === '/') //command
+        {
+            var commandData = messageData.content.substr(1);
+            var splitIndex = commandData.indexOf(' ');
+            var command = commandData.substr(0, splitIndex);
+            var args = commandData.substr(splitIndex + 1);
 
-        io.sockets.emit('new-message', message);
+            if(command === 'join')
+            {
+                socket.join(args);
+                var messages_for_room = _.filter(messages,function(m) {
+                    return m.room_name === args;
+                });
+                
+                var users_in_room = _.chain(messages_for_room)
+                                        .map(function(message) { return message.user })
+                                        .uniq()
+                                        .map(function(user) {
+                        return {
+                            username: user
+                        }
+                    }).value();
+
+                var currentUser = {
+                    username: socket.handshake.user.username
+                };
+                var joined_room_message = {
+                    name: args,
+                    users:_.union(users_in_room, [ currentUser ]),
+                    messages: messages_for_room
+                };
+
+                socket.emit('joined-room', joined_room_message);
+                socket.broadcast.in(args).emit('user-joined-room', {
+                    user: currentUser,
+                    room_name: args
+                });
+            }
+        }
+        else
+        {
+            var message = messageRouter.routeMessage(messageData, socket)
+            messages.push(message);
+        }
+
     });
 });
 
 server.listen(process.env.PORT || 3000)
 
 console.log("Express server listening on port %d in %s mode", server.address().port, app.settings.env)
+
+function MessageRouter(io)
+{
+    return {
+        routeMessage: function(messageData, socket) {
+            var message = {
+                date: new Date(),
+                content: sanitize(messageData.content).xss(),
+                user: socket.handshake.user.username,
+                room_name: messageData.room_name
+            };
+            io.sockets.in(message.room_name).emit('chat-message',  message);
+
+            return message;
+        }
+    };
+}

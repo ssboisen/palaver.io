@@ -15,10 +15,10 @@ block content
                             div.right {{ message.date | date:'HH:mm:ss' }}
                 div.span2.users
                     ul
-                        li(ng-repeat="user in selectedRoom.users")
+                        li(ng-repeat="user in selectedRoom.users | orderBy:username")
                             {{user.username}}
         div.row-fluid(style="margin-top: 40px", ng-controller="MessageController")
             div.span8
-                input(style="width: 90%;", ng-readonly="selectedRoom==null", ng-model="message", ui-keyup="{'enter':'sendmsg()'}")
+                input(style="width: 90%;", ng-model="message", ui-keyup="{'enter':'sendmsg()'}")
             div.span2
-                button.btn.btn-primary(ng-click="sendmsg()", ng-disabled="selectedRoom==null") Send
+                button.btn.btn-primary(ng-click="sendmsg()") Send
