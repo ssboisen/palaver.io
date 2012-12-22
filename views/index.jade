@@ -14,7 +14,7 @@ block content
                     li(ng-repeat="user in users")
                         {{user.username}}
         div.row-fluid(style="margin-top: 40px", ng-controller="MessageController")
-            div.span9
-                input(style="width: 800px; margin-left: 20px;", ng-model="message", ui-keyup="{'enter':'sendmsg()'}")
+            div.span8
+                input(style="width: 90%;", ng-model="message", ui-keyup="{'enter':'sendmsg()'}")
             div.span2
                 a(href="", ng-click="sendmsg()", style="font-size: 25px") send
