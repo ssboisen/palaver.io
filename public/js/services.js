@@ -1,8 +1,9 @@
 'use strict';
 
-angular.module('services', []).
-  value('version', '0.1').
-  factory('socket', function ($rootScope) {
+var services = angular.module('services', []).
+  value('version', '0.1');
+
+services.factory('socket', function ($rootScope) {
     var socket = io.connect();
     return {
       on: function (eventName, callback) {
@@ -24,15 +25,15 @@ angular.module('services', []).
         })
       }
     };
-  }).factory('pubsub', function() {
+  });
+
+services.factory('pubsub', function() {
         var cache = {};
         return {
             publish: function() {
                 var topic = arguments[0];
                 var args = Array.prototype.slice.call(arguments,1);
                 cache[topic] && $.each(cache[topic], function() {
-
-                    console.log(args);
                     this.apply(null, args);
                 });
             },
@@ -54,4 +55,4 @@ angular.module('services', []).
                 });
             }
         }
-    });;
+    });

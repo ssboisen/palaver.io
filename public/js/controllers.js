@@ -5,7 +5,6 @@ function RoomController($scope, socket, pubsub){
 
     $scope.setActiveRoom = function(room) {
       $scope.selectedRoom = room;
-      console.log($scope.selectedRoom);
       pubsub.publish('selectedRoomChanged', $scope.selectedRoom);
 
     };
