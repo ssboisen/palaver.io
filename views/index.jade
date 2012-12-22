@@ -1,18 +1,22 @@
 extends layout
 
 block content
-    div.container-fluid
-        div.row-fluid(ng-controller="RoomController")
-            div.span10.messages
-                ul
-                    li(ng-repeat="message in messages")
-                        div.left {{message.user}}
-                        div.middle {{message.content}}
-                        div.right {{ message.date | date:'HH:mm:ss' }}
-            div.span2.users
-                ul
-                    li(ng-repeat="user in users")
-                        {{user.username}}
+        div(ng-controller="RoomController")
+            div.row-fluid
+                ul.nav.nav-tabs
+                    li(ng-repeat="room in rooms", ng-class="{active: selectedRoom==room}" )
+                        a(href="#", data-toggle="tab", ng-click="setActiveRoom(room)") {{room.name}}
+            div.row-fluid
+                div.span10.messages
+                    ul
+                        li(ng-repeat="message in selectedRoom.messages")
+                            div.left {{message.user}}
+                            div.middle {{message.content}}
+                            div.right {{ message.date | date:'HH:mm:ss' }}
+                div.span2.users
+                    ul
+                        li(ng-repeat="user in users")
+                            {{user.username}}
         div.row-fluid(style="margin-top: 40px", ng-controller="MessageController")
             div.span8
                 input(style="width: 90%;", ng-model="message", ui-keyup="{'enter':'sendmsg()'}")

@@ -104,7 +104,8 @@ io.on('connection', function (socket) {
         var message = {
             date: new Date(),
             message: sanitize(data.message).xss(),
-            user: socket.handshake.user.username
+            user: socket.handshake.user.username,
+            room: data.room
         };
         messages.push(message);
 
