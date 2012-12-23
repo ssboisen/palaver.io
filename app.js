@@ -98,7 +98,7 @@ io.configure(function (){
 
 var messageRouter = MessageRouter(io);
 var rooms = [];
-var commandHandler = CommandHandler( [ JoinCommand(io, rooms) ]);
+var commandHandler = CommandHandler( [ JoinCommand(io, rooms), LeaveCommand(rooms) ]);
 
 io.on('connection', function (socket) {
     var currentUser = {
@@ -154,6 +154,34 @@ function MessageRouter(io)
             io.sockets.in(message.room_name).emit('chat-message',  message);
 
             return message;
+        }
+    };
+}
+
+function LeaveCommand(rooms){
+    return {
+        commandName: "leave",
+        execute: function(socket, args){
+            var currentUser = { username: socket.handshake.user.username };
+            var room_name = args;
+
+            socket.leave(room_name);
+
+            var room = _.find(rooms, function(r) {
+                return r.name === room_name;
+            });
+
+            if(room){
+                var user = _.find(room.users, function(u) {
+                    return u.username === currentUser.username;
+                });
+
+                if(user){
+                    var userIndex = _.indexOf(room.users, user);
+                    console.log(userIndex);
+                    room.users.splice(userIndex, 1);
+                }
+            }
         }
     };
 }
