@@ -98,6 +98,8 @@ io.configure(function (){
 
 var messageRouter = MessageRouter(io);
 var rooms = [];
+var commandHandler = CommandHandler( [ JoinCommand(io, rooms) ]);
+
 io.on('connection', function (socket) {
     var currentUser = {
         username: socket.handshake.user.username
@@ -113,44 +115,12 @@ io.on('connection', function (socket) {
     });
 
     socket.on('message', function (messageData) {
-        if(messageData.content.charAt(0) === '/') //command
+
+        if(commandHandler.isCommand(messageData))
         {
-            var commandData = messageData.content.substr(1);
-            var splitIndex = commandData.indexOf(' ');
-            var command = commandData.substr(0, splitIndex);
-            var args = commandData.substr(splitIndex + 1);
+            var commandInfo = commandHandler.extractCommandInfo(messageData);
 
-            if(command === 'join')
-            {
-                var room_name = args;
-
-                var room = _.find(rooms, function(r) {
-                    return r.name === room_name;
-                });
-
-                if(!room) {
-                    room = {
-                        name: room_name,
-                        users: [ ],
-                        messages: []
-                    };
-
-                    rooms.push(room);
-                }
-                else if(_.any(room.users, function(u) { return u.username === currentUser.username;})){
-                    return;
-                }
-
-                room.users.push(currentUser);
-
-                socket.broadcast.in(room.name).emit('user-joined-room', {
-                    user: currentUser,
-                    room_name: room.name
-                });
-
-                socket.join(room_name);
-                socket.emit('joined-room', room);
-            }
+            commandHandler.execute(socket,commandInfo.commandName,commandInfo.args);
         }
         else
         {
@@ -184,6 +154,72 @@ function MessageRouter(io)
             io.sockets.in(message.room_name).emit('chat-message',  message);
 
             return message;
+        }
+    };
+}
+
+function JoinCommand(io, rooms){
+    return {
+        commandName: "join",
+        execute: function(socket, args){
+            var room_name = args;
+            var currentUser = { username: socket.handshake.user.username };
+
+            var room = _.find(rooms, function(r) {
+                return r.name === room_name;
+            });
+
+            if(!room) {
+                room = {
+                    name: room_name,
+                    users: [ ],
+                    messages: []
+                };
+
+                rooms.push(room);
+            }
+            else if(_.any(room.users, function(u) { return u.username === currentUser.username;})){
+                return;
+            }
+
+
+            room.users.push(currentUser);
+
+            socket.broadcast.in(room.name).emit('user-joined-room', {
+                user: currentUser,
+                room_name: room.name
+            });
+
+            socket.join(room_name);
+            socket.emit('joined-room', room);
+        }
+    };
+}
+
+function CommandHandler(commands)
+{
+    var commands = _.reduce(commands,function(cm, c){
+        cm[c.commandName] = c;
+        return cm;
+    },{});
+
+    return {
+        execute: function(socket, commandName, args) {
+            commands[commandName].execute(socket, args);
+        },
+        extractCommandInfo: function(messageData) {
+            var commandData = messageData.content.substr(1);
+            var splitIndex = commandData.indexOf(' ');
+            var command = commandData.substr(0, splitIndex);
+            var args = commandData.substr(splitIndex + 1);
+
+            return {
+                commandName: command,
+                args: args
+            }
+        },
+        isCommand: function(messageData){
+            return messageData.content.charAt(0) === '/';
         }
     };
 }
