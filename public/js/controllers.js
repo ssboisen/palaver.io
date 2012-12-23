@@ -1,7 +1,8 @@
-function RoomController($scope, socket, pubsub){
+function RoomController($scope, $timeout, socket, pubsub){
 
     $scope.rooms = [];
     $scope.selectedRoom = null;
+    $scope.errorMessage = null;
 
     $scope.setActiveRoom = function(room) {
       $scope.selectedRoom = room;
@@ -9,8 +10,6 @@ function RoomController($scope, socket, pubsub){
     };
 	
 	socket.on('chat-message', function(message) {
-
-        console.log("Received message %j", message);
         var room = _.find($scope.rooms, function(r) {
             return r.name === message.room_name;
         });
@@ -29,8 +28,8 @@ function RoomController($scope, socket, pubsub){
 	});
 
     socket.on('joined-room', function(room){
-        console.log("Joining room: %j", room);
         $scope.rooms.push(room);
+
         $scope.setActiveRoom(room);
     });
 
@@ -40,6 +39,13 @@ function RoomController($scope, socket, pubsub){
         });
 
         room.users.push(message.user);
+    });
+
+    socket.on('chat-error', function(error){
+        $scope.errorMessage = error.message;
+        $timeout(function() {
+            $scope.errorMessage = null;
+        }, 5000);
     });
 }
 

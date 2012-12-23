@@ -122,7 +122,7 @@ io.on('connection', function (socket) {
 
             commandHandler.execute(socket,commandInfo.commandName,commandInfo.args);
         }
-        else
+        else if(messageData.room_name)
         {
             var message = messageRouter.routeMessage(messageData, socket);
 
@@ -205,13 +205,18 @@ function CommandHandler(commands)
 
     return {
         execute: function(socket, commandName, args) {
-            commands[commandName].execute(socket, args);
+            if(commands[commandName]){
+                commands[commandName].execute(socket, args);
+            }
+            else {
+                socket.emit('chat-error', { message: "Unknown command '" + commandName + "'. Use /help to get a list of available commands." });
+            }
         },
         extractCommandInfo: function(messageData) {
             var commandData = messageData.content.substr(1);
             var splitIndex = commandData.indexOf(' ');
-            var command = commandData.substr(0, splitIndex);
-            var args = commandData.substr(splitIndex + 1);
+            var command = splitIndex != -1 ? commandData.substr(0, splitIndex) : commandData;
+            var args = splitIndex != -1 ? commandData.substr(splitIndex + 1) : "";
 
             return {
                 commandName: command,
