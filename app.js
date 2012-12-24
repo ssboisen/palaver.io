@@ -116,11 +116,16 @@ io.on('connection', function (socket) {
 
     socket.on('message', function (messageData) {
 
+        if(!messageData.content)
+        {
+            return;
+        }
+        console.log("message received %j", messageData);
         if(commandHandler.isCommand(messageData))
         {
             var commandInfo = commandHandler.extractCommandInfo(messageData);
 
-            commandHandler.execute(socket,commandInfo.commandName,commandInfo.args);
+            commandHandler.execute(socket,commandInfo.commandName,commandInfo.args, commandInfo.room_name);
         }
         else if(messageData.room_name)
         {
@@ -161,9 +166,13 @@ function MessageRouter(io)
 function LeaveCommand(rooms){
     return {
         commandName: "leave",
-        execute: function(socket, args){
+        execute: function(socket, args, room_name){
             var currentUser = { username: socket.handshake.user.username };
-            var room_name = args;
+            var room_name = args || room_name;
+
+            if(!room_name) {
+               socket.emit('chat-error', { message: "Can't leave room without knowing which room it is you want to leave." })
+            }
 
             socket.leave(room_name);
 
@@ -178,8 +187,11 @@ function LeaveCommand(rooms){
 
                 if(user){
                     var userIndex = _.indexOf(room.users, user);
-                    console.log(userIndex);
                     room.users.splice(userIndex, 1);
+                    socket.emit('left-room', { room_name: room_name});
+                }
+                else {
+                    socket.emit('chat-error', { message: "You were not in the room that you tried to leave."});
                 }
             }
         }
@@ -232,9 +244,9 @@ function CommandHandler(commands)
     },{});
 
     return {
-        execute: function(socket, commandName, args) {
+        execute: function(socket, commandName, args, room_name) {
             if(commands[commandName]){
-                commands[commandName].execute(socket, args);
+                commands[commandName].execute(socket, args, room_name);
             }
             else {
                 socket.emit('chat-error', { message: "Unknown command '" + commandName + "'. Use /help to get a list of available commands." });
@@ -248,7 +260,8 @@ function CommandHandler(commands)
 
             return {
                 commandName: command,
-                args: args
+                args: args,
+                room_name: messageData.room_name
             }
         },
         isCommand: function(messageData){

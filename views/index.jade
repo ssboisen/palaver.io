@@ -5,7 +5,7 @@ block content
             div.row-fluid
                 ul.nav.nav-tabs
                     li(ng-repeat="room in rooms", ng-class="{active: selectedRoom==room}" )
-                        a(href="#", data-toggle="tab", ng-click="setActiveRoom(room)") {{room.name}}
+                            a(href="#", ng-click="setActiveRoom(room)", data-toggle="tab", ng-dblclick="leaveRoom(room)") {{room.name}}
             div.row-fluid
                 div.span10.messages(ng-auto-scroll="selectedRoom.messages")
                     ul

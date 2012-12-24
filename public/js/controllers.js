@@ -8,7 +8,24 @@ function RoomController($scope, $timeout, socket, pubsub){
       $scope.selectedRoom = room;
       pubsub.publish('selectedRoomChanged', $scope.selectedRoom);
     };
-	
+
+    socket.on('left-room', function(message){
+        var room = _.find($scope.rooms, function(r){
+            return r.name === message.room_name;
+        });
+
+        var index = $scope.rooms.indexOf(room);
+
+        $scope.rooms.splice(index, 1);
+
+        if($scope.selectedRoom === room){
+            $scope.setActiveRoom($scope.rooms[(index - 1) % $scope.rooms.length]);
+        }
+    });
+
+    $scope.leaveRoom = function(room) {
+        socket.emit('message', {content: '/leave ' + room.name });
+    }
 	socket.on('chat-message', function(message) {
         var room = _.find($scope.rooms, function(r) {
             return r.name === message.room_name;
