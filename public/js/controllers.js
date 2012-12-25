@@ -16,10 +16,23 @@ function RoomController($scope, $timeout, socket, pubsub){
 
         var index = $scope.rooms.indexOf(room);
 
+        var selectedRoom = $scope.selectedRoom;
         $scope.rooms.splice(index, 1);
 
-        if($scope.selectedRoom === room){
-            $scope.setActiveRoom($scope.rooms[(index - 1) % $scope.rooms.length]);
+        if(selectedRoom === room){
+
+            index = index == $scope.rooms.length ? (index - 1) : index;
+
+            var newSelectedRoom = $scope.rooms[index % $scope.rooms.length];
+
+            $scope.setActiveRoom(newSelectedRoom);
+        }
+        else {
+            //Hack to fix problem with ng-repeater not applying ng-class: active
+            $scope.setActiveRoom(null);
+            $timeout(function() {
+                $scope.setActiveRoom(selectedRoom);
+            },1);
         }
     });
 
