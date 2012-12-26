@@ -8,13 +8,16 @@ var express = require('express'),
     cookieParser = express.cookieParser(sessionSecret),
     sessionStore = new connect.middleware.session.MemoryStore(),
     server = http.createServer(app),
-    sanitize = require('validator').sanitize,
     io = require('socket.io').listen(server),
     passport = require('passport'),
     passportSocketIo = require('passport.socketio'),
     flash = require('connect-flash'),
     LocalStrategy = require('passport-local').Strategy,
-    _ = require('underscore');
+    _ = require('underscore'),
+    rooms = [],
+    commandHandler = require('./lib/CommandHandler')(),
+    commands = require('./lib/commands')(commandHandler, io, rooms),
+    messageRouter = require('./lib/MessageRouter')(io);
 
 // Configuration
 app.configure(function(){
@@ -96,10 +99,6 @@ io.configure(function (){
     }));
 });
 
-var messageRouter = MessageRouter(io);
-var rooms = [];
-var commandHandler = CommandHandler( [ JoinCommand(io, rooms), LeaveCommand(rooms) ]);
-
 io.on('connection', function (socket) {
     var currentUser = {
         username: socket.handshake.user.username
@@ -120,7 +119,7 @@ io.on('connection', function (socket) {
         {
             return;
         }
-        console.log("message received %j", messageData);
+
         if(commandHandler.isCommand(messageData))
         {
             var commandInfo = commandHandler.extractCommandInfo(messageData);
@@ -144,128 +143,3 @@ io.on('connection', function (socket) {
 server.listen(process.env.PORT || 3000)
 
 console.log("Express server listening on port %d in %s mode", server.address().port, app.settings.env)
-
-function MessageRouter(io)
-{
-    return {
-        routeMessage: function(messageData, socket) {
-            var message = {
-                date: new Date(),
-                content: sanitize(messageData.content).xss(),
-                user: socket.handshake.user.username,
-                room_name: messageData.room_name
-            };
-
-            io.sockets.in(message.room_name).emit('chat-message',  message);
-
-            return message;
-        }
-    };
-}
-
-function LeaveCommand(rooms){
-    return {
-        commandName: "leave",
-        execute: function(socket, args, room_name){
-            var currentUser = { username: socket.handshake.user.username };
-            var room_name = args || room_name;
-
-            if(!room_name) {
-               socket.emit('chat-error', { message: "Can't leave room without knowing which room it is you want to leave." })
-            }
-
-            socket.leave(room_name);
-
-            var room = _.find(rooms, function(r) {
-                return r.name === room_name;
-            });
-
-            if(room){
-                var user = _.find(room.users, function(u) {
-                    return u.username === currentUser.username;
-                });
-
-                if(user){
-                    var userIndex = _.indexOf(room.users, user);
-                    room.users.splice(userIndex, 1);
-                    socket.emit('left-room', { room_name: room_name});
-                }
-                else {
-                    socket.emit('chat-error', { message: "You were not in the room that you tried to leave."});
-                }
-            }
-        }
-    };
-}
-
-function JoinCommand(io, rooms){
-    return {
-        commandName: "join",
-        execute: function(socket, args){
-            var room_name = args;
-            var currentUser = { username: socket.handshake.user.username };
-
-            var room = _.find(rooms, function(r) {
-                return r.name === room_name;
-            });
-
-            if(!room) {
-                room = {
-                    name: room_name,
-                    users: [ ],
-                    messages: []
-                };
-
-                rooms.push(room);
-            }
-            else if(_.any(room.users, function(u) { return u.username === currentUser.username;})){
-                return;
-            }
-
-
-            room.users.push(currentUser);
-
-            socket.broadcast.in(room.name).emit('user-joined-room', {
-                user: currentUser,
-                room_name: room.name
-            });
-
-            socket.join(room_name);
-            socket.emit('joined-room', room);
-        }
-    };
-}
-
-function CommandHandler(commands)
-{
-    var commands = _.reduce(commands,function(cm, c){
-        cm[c.commandName] = c;
-        return cm;
-    },{});
-
-    return {
-        execute: function(socket, commandName, args, room_name) {
-            if(commands[commandName]){
-                commands[commandName].execute(socket, args, room_name);
-            }
-            else {
-                socket.emit('chat-error', { message: "Unknown command '" + commandName + "'. Use /help to get a list of available commands." });
-            }
-        },
-        extractCommandInfo: function(messageData) {
-            var commandData = messageData.content.substr(1);
-            var splitIndex = commandData.indexOf(' ');
-            var command = splitIndex != -1 ? commandData.substr(0, splitIndex) : commandData;
-            var args = splitIndex != -1 ? commandData.substr(splitIndex + 1) : "";
-
-            return {
-                commandName: command,
-                args: args,
-                room_name: messageData.room_name
-            }
-        },
-        isCommand: function(messageData){
-            return messageData.content.charAt(0) === '/';
-        }
-    };
-}
