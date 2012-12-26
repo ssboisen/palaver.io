@@ -1,1 +1,1 @@
-angular.module('palaver', ['palaver-ui', 'ui', 'services']);
+angular.module('palaver', ['palaver-ui', 'palaver-filters', 'ngSanitize', 'ui', 'services']);

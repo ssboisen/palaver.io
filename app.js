@@ -15,8 +15,8 @@ var express = require('express'),
     LocalStrategy = require('passport-local').Strategy,
     _ = require('underscore'),
     rooms = [],
-    commandHandler = require('./lib/CommandHandler')(),
-    commands = require('./lib/commands')(commandHandler, io, rooms),
+    commands = require('./lib/commands')(io, rooms),
+    commandHandler = require('./lib/CommandHandler')(commands),
     messageRouter = require('./lib/MessageRouter')(io);
 
 // Configuration

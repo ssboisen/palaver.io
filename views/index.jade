@@ -13,7 +13,8 @@ block content
                     ul
                         li(ng-repeat="message in selectedRoom.messages")
                             div.left {{message.user}}
-                            div.middle {{message.content}}
+                            div.middle
+                                div(ng-bind-html="message.content | newline")
                             div.right {{ message.date | date:'HH:mm:ss' }}
                         li.text-error(ng-hide="errorMessage==null", style="text-align: center") {{errorMessage}}
                 div.span2.users
