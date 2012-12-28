@@ -10,7 +10,9 @@
     "passport-local": "~0.1.6",
     "connect-flash": "~0.1.0",
     "passport.socketio": "0.0.4",
-    "underscore": "~1.4.3"
+    "underscore": "~1.4.3",
+    "mongojs": "~0.4.6",
+    "q": "~0.8.11"
   },
   "engines": {
     "node": "0.8.x",

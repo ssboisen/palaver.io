@@ -15,7 +15,9 @@ var express = require('express'),
     LocalStrategy = require('passport-local').Strategy,
     _ = require('underscore'),
     rooms = [],
-    commands = require('./lib/commands')(io, rooms),
+    db = require('mongojs')('palaver'),
+    chatRepo = require('./lib/ChatRepository')(db);
+    commands = require('./lib/commands')(io, chatRepo),
     commandHandler = require('./lib/CommandHandler')(commands),
     messageRouter = require('./lib/MessageRouter')(io);
 
