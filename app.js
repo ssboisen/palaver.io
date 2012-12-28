@@ -106,13 +106,13 @@ io.on('connection', function (socket) {
         username: socket.handshake.user.username
     };
 
-    var rooms_already_in = _.filter(rooms, function(r){
-        return _.any(r.users, function(u) {return u.username === currentUser.username;});
-    });
-
-    _.forEach(rooms_already_in, function(r) {
-        socket.join(r.name);
-        socket.emit('joined-room', r);
+    chatRepo.roomsForUser(currentUser.username).then(function(rooms){
+        _.forEach(rooms, function(r) {
+            socket.join(r.name);
+            socket.emit('joined-room', r);
+        });
+    }, function(error){
+        console.log("Error: %j", error);
     });
 
     socket.on('message', function (messageData) {
@@ -132,11 +132,9 @@ io.on('connection', function (socket) {
         {
             var message = messageRouter.routeMessage(messageData, socket);
 
-            var room = _.find(rooms, function(room) {
-                return room.name === message.room_name;
+            chatRepo.addMessageToRoom(message.room_name, message).fail(function(error){
+                console.log("Error: %j", error);
             });
-
-            room.messages.push(message);
         }
 
     });
