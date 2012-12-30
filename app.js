@@ -16,14 +16,15 @@ var express = require('express'),
     passport = require('passport'),
     passportSocketIo = require('passport.socketio'),
     flash = require('connect-flash'),
-    LocalStrategy = require('passport-local').Strategy,
     _ = require('underscore'),
     db = require('mongojs')('palaver'),
     ChatRepository = require('./lib/ChatRepository')(db),
     chatRepo = new ChatRepository(),
     commands = require('./lib/commands')(io, chatRepo),
     commandHandler = require('./lib/CommandHandler')(commands),
-    messageRouter = require('./lib/MessageRouter')(io);
+    messageRouter = require('./lib/MessageRouter')(io),
+    utils = require('./lib/utils'),
+    authSetup = require('./lib/authSetup');
 
 // Configuration
 app.configure(function(){
@@ -49,13 +50,9 @@ app.configure('production', function(){
     app.use(express.errorHandler());
 });
 
-function ensureAuthenticated(req, res, next) {
-    if (req.isAuthenticated()) { return next(); }
-    res.redirect('/login')
-}
-app.get('/', ensureAuthenticated, routes.index);
+app.get('/', utils.ensureAuthenticated, routes.index);
 
-app.get('/logout', function(req, res){
+app.get('/logout', utils.ensureAuthenticated, function(req, res){
     req.logout();
     res.redirect('/');
 });
@@ -63,30 +60,7 @@ app.get('/login', routes.login );
 
 app.post('/login', passport.authenticate('local', { successRedirect: '/', failureRedirect: '/login', failureFlash: true  }));
 
-passport.serializeUser(function(user, done) {
-    done(null, user.username);
-});
-
-passport.deserializeUser(function(username, done) {
-    chatRepo.findUser(username).then(function(user){
-        done(null, user);
-    }, function(error){
-        console.error("Error: ", error);
-    });
-});
-
-passport.use(new LocalStrategy(function(username, password, done){
-    chatRepo.findUser(username).then(function(user){
-        if(user.password === password){
-            done(null, user);
-        }
-        else{
-            done(null,false, { message: 'Invalid username or password' } );
-        }
-    }, function(error){
-        console.error("Error: ", error);
-    });
-}));
+authSetup(passport,chatRepo);
 
 io.configure(function (){
     io.set("authorization", passportSocketIo.authorize({
