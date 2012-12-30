@@ -14,7 +14,6 @@ var express = require('express'),
     server = http.createServer(app),
     io = require('socket.io').listen(server),
     passport = require('passport'),
-    passportSocketIo = require('passport.socketio'),
     flash = require('connect-flash'),
     _ = require('underscore'),
     db = require('mongojs')('palaver'),
@@ -60,20 +59,10 @@ app.get('/login', routes.login );
 
 app.post('/login', passport.authenticate('local', { successRedirect: '/', failureRedirect: '/login', failureFlash: true  }));
 
-authSetup(passport,chatRepo);
-
-io.configure(function (){
-    io.set("authorization", passportSocketIo.authorize({
-        sessionKey:    sessionKey,      //the cookie where express (or connect) stores its session id.
-        sessionStore:  sessionStore,     //the session store that express uses
-        sessionSecret: sessionSecret, //the session secret to parse the cookie
-        fail: function(data, accept) {     // *optional* callbacks on success or fail
-            accept(null, false);             // second param takes boolean on whether or not to allow handshake
-        },
-        success: function(data, accept) {
-            accept(null, true);
-        }
-    }));
+authSetup(passport, chatRepo, io, {
+    sessionStore: sessionStore,
+    sessionKey: sessionKey,
+    sessionSecret: sessionSecret
 });
 
 io.on('connection', function (socket) {
