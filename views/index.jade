@@ -3,6 +3,8 @@ extends layout
 block content
         div(ng-controller="RoomController")
             div.row-fluid
+                a(href="/logout", style="float: right") logout
+            div.row-fluid
                 ul.nav.nav-tabs
                     li(ng-repeat="room in rooms", ng-class="{active: selectedRoom==room}" )
                             div(data-toggle="tab", style="position:relative")

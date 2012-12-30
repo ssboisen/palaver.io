@@ -2,11 +2,11 @@ var express = require('express'),
     routes = require('./routes'),
     http = require('http'),
     connect = require('express/node_modules/connect'),
+    MemoryStore = new connect.middleware.session.MemoryStore(),
     app = express(),
     sessionSecret = "palaver is the best",
     sessionKey = "palaver.sid",
     cookieParser = express.cookieParser(sessionSecret),
-    MemoryStore = new connect.middleware.session.MemoryStore(),
     MongoStore = require('connect-mongo')(express),
     sessionStore = new MongoStore({
         db: 'palaver'
@@ -55,6 +55,10 @@ function ensureAuthenticated(req, res, next) {
 }
 app.get('/', ensureAuthenticated, routes.index);
 
+app.get('/logout', function(req, res){
+    req.logout();
+    res.redirect('/');
+});
 app.get('/login', routes.login );
 
 app.post('/login', passport.authenticate('local', { successRedirect: '/', failureRedirect: '/login', failureFlash: true  }));
