@@ -6,7 +6,11 @@ var express = require('express'),
     sessionSecret = "palaver is the best",
     sessionKey = "palaver.sid",
     cookieParser = express.cookieParser(sessionSecret),
-    sessionStore = new connect.middleware.session.MemoryStore(),
+    MemoryStore = new connect.middleware.session.MemoryStore(),
+    MongoStore = require('connect-mongo')(express),
+    sessionStore = new MongoStore({
+        db: 'palaver'
+    }),
     server = http.createServer(app),
     io = require('socket.io').listen(server),
     passport = require('passport'),
@@ -14,9 +18,9 @@ var express = require('express'),
     flash = require('connect-flash'),
     LocalStrategy = require('passport-local').Strategy,
     _ = require('underscore'),
-    rooms = [],
     db = require('mongojs')('palaver'),
-    chatRepo = require('./lib/ChatRepository')(db);
+    ChatRepository = require('./lib/ChatRepository')(db),
+    chatRepo = new ChatRepository(),
     commands = require('./lib/commands')(io, chatRepo),
     commandHandler = require('./lib/CommandHandler')(commands),
     messageRouter = require('./lib/MessageRouter')(io);
@@ -56,34 +60,27 @@ app.get('/login', routes.login );
 app.post('/login', passport.authenticate('local', { successRedirect: '/', failureRedirect: '/login', failureFlash: true  }));
 
 passport.serializeUser(function(user, done) {
-    done(null, user.id);
+    done(null, user.username);
 });
 
-passport.deserializeUser(function(id, done) {
-    if(id === 1) { done(null, {
-        id: 1,
-        username: "ssb",
-        password: "password"
-    }); }
-    else if(id === 2) { done(null, {
-        id: 2,
-        username: "mhs",
-        password: "password"
-    })}
+passport.deserializeUser(function(username, done) {
+    chatRepo.findUser(username).then(function(user){
+        done(null, user);
+    }, function(error){
+        console.error("Error: ", error);
+    });
 });
 
 passport.use(new LocalStrategy(function(username, password, done){
-    process.nextTick(function() {
-        if(username === "ssb" && password === "password") {
-            done(null, { id: 1, username: "ssb", password: "password"});
+    chatRepo.findUser(username).then(function(user){
+        if(user.password === password){
+            done(null, user);
         }
-        else if(username === "mhs" && password === "password") {
-            done(null, { id: 2, username: "mhs", password: "password" });
+        else{
+            done(null,false, { message: 'Invalid username or password' } );
         }
-        else {
-            done(null, false, { message: 'Invalid username or password' });
-        }
-
+    }, function(error){
+        console.error("Error: ", error);
     });
 }));
 

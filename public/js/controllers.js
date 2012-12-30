@@ -61,7 +61,18 @@ function RoomController($scope, $timeout, socket, pubsub){
 	});
 
     socket.on('joined-room', function(room){
-        $scope.rooms.push(room);
+        var existingRoom = _.find($scope.rooms, function(r){
+            return r.name === room.name;
+        });
+
+        if(existingRoom)
+        {
+            var index = $scope.indexOf(existingRoom);
+            $scope.rooms[index] = room;
+        }
+        else{
+            $scope.rooms.push(room);
+        }
 
         $scope.setActiveRoom(room);
     });
