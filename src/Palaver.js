@@ -1,15 +1,13 @@
 module.exports = Palaver
+var abstractChatRepository = require('./ChatRepository');
 
-function Palaver(io, passport, config){
-
-    var abstractChatRepository = require('./ChatRepository');
-    var ChatRepository;
+function createChatRepository(config){
 
     if(!config.chatRepository && config.db) {
-        ChatRepository = require('./MongoDbChatRepository')(config.db);
+        return require('./MongoDbChatRepository')(config.db);
     }
     else if(config.chatRepository && config.chatRepository instanceof abstractChatRepository) {
-        ChatRepository = config.chatRepository;
+        return config.chatRepository;
     }
     else if(config.chatRepository) {
         throw new Error("config.chatRepository must be instance of ChatRepository");
@@ -17,8 +15,12 @@ function Palaver(io, passport, config){
     else {
         throw new Error("You must either supply a ChatRepository instance as config.chatRepository or a mongojs database as config.db");
     }
+}
 
-    var chatRepo = new ChatRepository(),
+function Palaver(io, passport, config){
+
+    var ChatRepository = createChatRepository(config),
+        chatRepo = new ChatRepository(),
         commands = require('./commands')(io, chatRepo),
         commandHandler = require('./CommandHandler')(commands),
         messageRouter = require('./MessageRouter')(io),
