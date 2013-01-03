@@ -2,9 +2,9 @@
 var LocalStrategy = require('passport-local').Strategy;
 var passportSocketIo = require('passport.socketio');
 
-module.exports = setupPassport;
+module.exports = setupAuthentication;
 
-function setupPassport(passport, chatRepo, io, sessionInfo){
+function setupAuthentication(passport, chatRepo, io, sessionInfo){
 
     passport.serializeUser(function(user, done) {
         done(null, user.username);
@@ -36,13 +36,7 @@ function setupPassport(passport, chatRepo, io, sessionInfo){
         io.set("authorization", passportSocketIo.authorize({
             sessionKey:    sessionInfo.sessionKey,      //the cookie where express (or connect) stores its session id.
             sessionStore:  sessionInfo.sessionStore,     //the session store that express uses
-            sessionSecret: sessionInfo.sessionSecret, //the session secret to parse the cookie
-            fail: function(data, accept) {     // *optional* callbacks on success or fail
-                accept(null, false);             // second param takes boolean on whether or not to allow handshake
-            },
-            success: function(data, accept) {
-                accept(null, true);
-            }
+            sessionSecret: sessionInfo.sessionSecret
         }));
     });
 
