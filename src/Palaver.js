@@ -5,11 +5,14 @@ function Palaver(io, passport, config){
     var abstractChatRepository = require('./ChatRepository');
     var ChatRepository;
 
-    if(config.chatRepository && !(config.chatRepository instanceof abstractChatRepository)) {
-        throw new Error("config.chatRepository must be instance of ChatRepository");
-    }
-    else if(!config.chatRepository && config.db) {
+    if(!config.chatRepository && config.db) {
         ChatRepository = require('./MongoDbChatRepository')(config.db);
+    }
+    else if(config.chatRepository && config.chatRepository instanceof abstractChatRepository) {
+        ChatRepository = config.chatRepository;
+    }
+    else if(config.chatRepository) {
+        throw new Error("config.chatRepository must be instance of ChatRepository");
     }
     else {
         throw new Error("You must either supply a ChatRepository instance as config.chatRepository or a mongojs database as config.db");
