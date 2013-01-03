@@ -15,8 +15,6 @@ var helpTexts = commands
     .map(function(c) { return c.commandName + ": " + c.helpText; })
     .value();
 
-console.log(helpTexts);
-
 module.exports = function(io, room){
     return {
         commandName: "help",
