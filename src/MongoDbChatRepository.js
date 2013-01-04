@@ -29,16 +29,23 @@ function MongoChatRepositoryFactory(db) {
     function MongoChatRepository(){
         this.joinRoom = function(room_name, username){
             var deferred = Q.defer();
-            rooms.findAndModify({
-                query: { name: room_name },
-                update: {
-                    $addToSet: { users: { username: username } }
-                },
-                "new": true,
-                upsert: true
-            }, deferred.makeMongodbResolver());
-
-            return deferred.promise;
+            
+            rooms.update({ name: room_name }, { $addToSet: { users: { username: username } } }, { upsert: true}, deferred.makeMongodbResolver());
+            
+            return deferred.promise.then(function ()  {
+                var findDeferred = Q.defer();
+                
+                rooms.find({name: room_name}, findDeferred.makeMongodbResolver());
+                
+                return findDeferred.promise;
+            }).then(function (docs){
+                if(docs.length === 1){
+                    return docs[0];
+                }
+                else{
+                    throw new Error("An error occured while trying to join room '" + room_name + "'");
+                }
+            });
         };
 
         this.leaveRoom = function(room_name, username){
