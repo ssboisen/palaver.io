@@ -1,6 +1,7 @@
 var Q = require('q'),
     util = require('util'),
-    ChatRepository = require('./ChatRepository');
+    ChatRepository = require('./ChatRepository'),
+    crypto = require("crypto");
 
 module.exports = MongoChatRepositoryFactory
 
@@ -91,7 +92,11 @@ function MongoChatRepositoryFactory(db) {
                 var deferred = Q.defer();
 
                 if(!existingUser){
-                    users.insert(user, deferred.makeMongodbResolver());
+                    user.salt = crypto.randomBytes(8).toString('hex');
+                    crypto.pbkdf2(user.password, user.salt, 1000, 20, function(err, derivedKey) {
+                        user.password = derivedKey;
+                        users.insert(user, deferred.makeMongodbResolver());    
+                    });
                 }
                 else{
                     throw new Error("User already exists");
@@ -100,6 +105,12 @@ function MongoChatRepositoryFactory(db) {
                 return deferred.promise;
             });
         };
+        
+        this.changePassword = function(username, newPassword){
+            var deferred = Q.defer();
+            users.update({ username: username}, {"$set": { "password": newPassword}}, deferred.makeMongodbResolver());
+            return deferred.promise;
+        }
     };
 
     return MongoChatRepository;

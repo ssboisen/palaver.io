@@ -28,7 +28,7 @@ function Palaver(io, passport, config){
         authSetup = require('./authSetup');
 
     authSetup(passport, chatRepo, io, config);
-
+    
     io.on('connection', function (socket) {
 
         var currentUser = {

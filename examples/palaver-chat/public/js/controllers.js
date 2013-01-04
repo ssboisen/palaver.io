@@ -40,7 +40,6 @@ function RoomController($scope, $timeout, socket, pubsub){
         socket.emit('message', {content: '/leave ' + room.name });
     }
 	socket.on('chat-message', function(message) {
-        console.log("chat-message: ", message);
         var room = _.find($scope.rooms, function(r) {
             return r.name === message.room_name;
         });

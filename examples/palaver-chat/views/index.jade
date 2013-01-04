@@ -25,6 +25,6 @@ block content
                             {{user.username}}
         div.row-fluid(style="margin-top: 40px", ng-controller="MessageController")
             div.span8
-                input(style="width: 90%;", ng-model="message", ui-keyup="{'enter':'sendmsg()'}")
+                input(style="width: 90%;", ng-model="message", ui-keyup="{'enter':'sendmsg()'}", autofocus)
             div.span2
                 button.btn.btn-primary(ng-click="sendmsg()") Send
