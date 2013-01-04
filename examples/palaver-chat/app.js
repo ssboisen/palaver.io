@@ -1,20 +1,20 @@
 var express = require('express'),
     routes = require('./routes'),
     http = require('http'),
-    connect = require('express/node_modules/connect'),
     app = express(),
     sessionSecret = "palaver-chat is the best",
     sessionKey = "palaver-chat.sid",
     cookieParser = express.cookieParser(sessionSecret),
+    mongoUrl = 'mongodb://<user>:<password>@<host>:<port>/palaver',
     MongoStore = require('connect-mongo')(express),
     sessionStore = new MongoStore({
-        db: 'palaver'
+        url: mongoUrl
     }),
     server = http.createServer(app),
     io = require('socket.io').listen(server),
     passport = require('passport'),
     flash = require('connect-flash'),
-    mongoDb = require('mongojs')('palaver'),
+    mongoDb = require('mongojs')(mongoUrl),
     utils = require('./utils'),
     Palaver = require('../../');
 
@@ -60,6 +60,7 @@ Palaver(io, passport, {
     sessionSecret: sessionSecret
 });
 
-server.listen(process.env.PORT || 3000)
+server.listen(process.env.PORT || 3000, process.env.IP || "127.0.0.1")
 
-console.log("Express server listening on port %d in %s mode", server.address().port, app.settings.env)
+//console.log("Express server listening on port %d in %s mode", server.address().port, app.settings.env)
+console.log("Express is listening");

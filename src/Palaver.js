@@ -1,5 +1,6 @@
 module.exports = Palaver
 var abstractChatRepository = require('./ChatRepository');
+var _ = require('underscore');
 
 function createChatRepository(config){
 
@@ -29,6 +30,7 @@ function Palaver(io, passport, config){
     authSetup(passport, chatRepo, io, config);
 
     io.on('connection', function (socket) {
+
         var currentUser = {
             username: socket.handshake.user.username
         };

@@ -19,7 +19,7 @@ module.exports = function(io, chatRepo){
                 socket.emit('joined-room', room);
 
             }, function(error){
-                console.log("Error: %j", error);
+                console.log("Error while joining room: %j", error);
             });
         },
 

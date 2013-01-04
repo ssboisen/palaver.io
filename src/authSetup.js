@@ -36,7 +36,8 @@ function setupAuthentication(passport, chatRepo, io, sessionInfo){
         io.set("authorization", passportSocketIo.authorize({
             sessionKey:    sessionInfo.sessionKey,      //the cookie where express (or connect) stores its session id.
             sessionStore:  sessionInfo.sessionStore,     //the session store that express uses
-            sessionSecret: sessionInfo.sessionSecret
+            sessionSecret: sessionInfo.sessionSecret,
+            passport: passport
         }));
     });
 
