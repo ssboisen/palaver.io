@@ -1,1 +1,1 @@
-module.exports = require('./src/Palaver');
+module.exports = require('./lib/Palaver');
