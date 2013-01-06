@@ -1,5 +1,7 @@
 {
   "name": "palaver.io",
+  "author": "Simon Skov Boisen <simon@skov-boisen.dk> (http://www.skov-boisen.dk)",
+  "description": "a lucid node.js framework for building multi-room chat-applications",
   "version": "0.0.1",
   "dependencies": {
     "socket.io": "0.9.13",
