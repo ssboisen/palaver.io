@@ -106,7 +106,7 @@ describe('MemoryChatRepository', function() {
   describe('.addMessageToRoom(roomName, message)', function(){
 
     var message = { content: "the message" };
-		
+
     beforeEach(function(){
       rooms = [];
       memoryChatRepository = new MemoryChatRepository(rooms);
@@ -122,43 +122,43 @@ describe('MemoryChatRepository', function() {
     });
 
     it('should do nothing if room doesn\'t exist', function(){
-	  	(function(){
-	   		memoryChatRepository.addMessageToRoom("room", message);
-	    }).should.not.throw();
+      (function(){
+        memoryChatRepository.addMessageToRoom("room", message);
+      }).should.not.throw();
 
-			rooms.should.have.lengthOf(0);
+      rooms.should.have.lengthOf(0);
     });
   });
 
-	describe('.roomsForUser(username)', function(){
-					
-		var room1 = { name: "room", users: [{ username: "user" }], messages: []};
-		var room2 = { name: "room", users: [{ username: "user" }, { username: "user2" }], messages: []};
-		var room3 = { name: "room", users: [{ username: "user2" }], messages: []};
+  describe('.roomsForUser(username)', function(){
+
+    var room1 = { name: "room", users: [{ username: "user" }], messages: []};
+    var room2 = { name: "room", users: [{ username: "user" }, { username: "user2" }], messages: []};
+    var room3 = { name: "room", users: [{ username: "user2" }], messages: []};
 
     beforeEach(function(){
       rooms = [];
       memoryChatRepository = new MemoryChatRepository(rooms);
     });
 
-		it('should find the rooms the user is in', function(){
-				rooms.push(room1); rooms.push(room2);
+    it('should find the rooms the user is in', function(){
+      rooms.push(room1); rooms.push(room2);
 
-				var foundRooms = memoryChatRepository.roomsForUser("user");
+      var foundRooms = memoryChatRepository.roomsForUser("user");
 
-				foundRooms.should.have.lengthOf(2);
-				foundRooms.should.includeEql(room1);
-				foundRooms.should.includeEql(room2);
-		});
+      foundRooms.should.have.lengthOf(2);
+      foundRooms.should.includeEql(room1);
+      foundRooms.should.includeEql(room2);
+    });
 
-		it('should not find the rooms the user is not in', function(){
-			rooms.push(room1); rooms.push(room3);	
-			
-			var foundRooms = memoryChatRepository.roomsForUser("user");
+    it('should not find the rooms the user is not in', function(){
+      rooms.push(room1); rooms.push(room3);
 
-			foundRooms.should.have.lengthOf(1);
-			foundRooms.should.includeEql(room1);
-		});
+      var foundRooms = memoryChatRepository.roomsForUser("user");
 
-	});
+      foundRooms.should.have.lengthOf(1);
+      foundRooms.should.includeEql(room1);
+    });
+
+  });
 });
