@@ -20,4 +20,4 @@ clean:
 	rm -f coverage.html
 	rm -fr lib-cov
 
-.PHONY: test test-unit
+.PHONY: test test-unit clean
