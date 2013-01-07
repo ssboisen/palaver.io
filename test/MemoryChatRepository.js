@@ -1,4 +1,5 @@
-var MemoryChatRepository = require('../lib/MemoryChatRepository')
+var palaver = require('../')
+  , MemoryChatRepository = palaver.MemoryChatRepository
   , should = require('should');
 
 describe('MemoryChatRepository', function() {
