@@ -6,11 +6,11 @@
     "express": "3.x",
     "jade": ">= 0.0.1",
     "socket.io": "0.9.13",
-    "validator": "~0.4.19",
     "passport": "~0.1.15",
+    "passport-local": "~0.1.6",
+    "passport.socketio": "0.0.4",
     "connect-flash": "~0.1.0",
     "underscore": "~1.4.3",
-    "q": "~0.8.11",
     "connect-mongo": "~0.2.0"
   },
   "engines": {
