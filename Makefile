@@ -5,6 +5,9 @@ check: test
 
 test: test-unit
 
+test-w: 
+	$(MAKE) test MOCHA_OPTS=--watch REPORTER=min
+
 test-unit:
 	@NODE_ENV=test ./node_modules/.bin/mocha \
 		--reporter $(REPORTER) \
@@ -20,4 +23,4 @@ clean:
 	rm -f coverage.html
 	rm -fr lib-cov
 
-.PHONY: test test-unit clean
+.PHONY: test test-unit clean test-w
