@@ -21,7 +21,7 @@ describe('MemoryChatRepository', function () {
             var room = memoryChatRepository.joinRoom("room", "user");
 
             room.should.have.property('users').with.lengthOf(1);
-            room.should.have.property('users').includeEql({ username: "user"});
+            room.should.have.property('users').includeEql({ username: "user", online: true});
         });
 
         it('should not add user to room if already in room', function () {
@@ -66,7 +66,7 @@ describe('MemoryChatRepository', function () {
 
             room.should.have.property('users').with.lengthOf(2);
             room.should.have.property('users').includeEql({ username: "user"});
-            room.should.have.property('users').includeEql({ username: "user2"});
+            room.should.have.property('users').includeEql({ username: "user2", online: true});
         });
     });
 
@@ -165,5 +165,80 @@ describe('MemoryChatRepository', function () {
             foundRooms.should.includeEql(room1);
         });
 
+    });
+
+    describe('.userConnected(username)', function () {
+        var users = [];
+
+        beforeEach(function () {
+            users = [];
+            rooms = [];
+            memoryChatRepository = new MemoryChatRepository(rooms, users);
+        });
+
+        it('should increment connectionCount', function() {
+          var user = { username: 'testuser', connectionCount: 0 };
+          users.push(user);
+
+          var returnedUser = memoryChatRepository.userConnected('testuser');
+          returnedUser.connectionCount.should.equal(1);
+        });
+
+        it('should set online to true', function () {
+          var user = { username: 'testuser', connectionCount: 0 };
+          users.push(user);
+
+          var returnedUser = memoryChatRepository.userConnected('testuser');
+          returnedUser.online.should.equal(true);
+        });
+
+        it('should set online to true in rooms', function () {
+          var user = { username: 'user', connectionCount: 0 };
+          var room = { name: "room", users: [{ username: "user", online: false }], messages: []};
+          users.push(user);
+          rooms.push(room);
+
+          memoryChatRepository.userConnected('user');
+
+          room.users.should.includeEql({ username: 'user', online: true });
+        });
+    });
+
+    describe('.userDisconnected(username)', function () {
+        var users = [];
+
+        beforeEach(function () {
+            users = [];
+            rooms = [];
+            memoryChatRepository = new MemoryChatRepository(rooms, users);
+        });
+
+        it('should decrement connectionCount', function() {
+          var user = { username: 'testuser', connectionCount: 2 };
+          users.push(user);
+
+          var returnedUser = memoryChatRepository.userDisconnected('testuser');
+          returnedUser.connectionCount.should.equal(1);
+        });
+
+        it('should set online to false when connectionCount is 0', function () {
+          var user = { username: 'testuser', connectionCount: 1 };
+          users.push(user);
+
+          var returnedUser = memoryChatRepository.userDisconnected('testuser');
+          returnedUser.connectionCount.should.equal(0);
+          returnedUser.online.should.equal(false);
+        });
+
+        it('should set online to false in rooms', function () {
+          var user = { username: 'user', connectionCount: 1 };
+          var room = { name: "room", users: [{ username: "user", online: true }], messages: []};
+          users.push(user);
+          rooms.push(room);
+
+          memoryChatRepository.userDisconnected('user');
+
+          room.users.should.includeEql({ username: 'user', online: false });
+        });
     });
 });
